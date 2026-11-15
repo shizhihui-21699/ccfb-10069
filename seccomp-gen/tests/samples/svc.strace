@@ -1,0 +1,18 @@
+1000  0.000000 execve("/usr/bin/svc", ["svc"], 0x7ff) = 0
+1000  0.000001 brk(NULL) = 0x55550000
+1000  0.000002 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f00
+1000  0.000003 clone(CLONE_VM|CLONE_FS|CLONE_THREAD|CLONE_SIGHAND, 0, 0, 0, 0) = 1001
+1001  0.000004 futex(0x7f00, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+1000  0.000005 socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC, IPPROTO_TCP) = 3 <unfinished ...>
+1000  0.000006 <... socket resumed> ) = 3
+1000  0.000007 connect(3, {sa_family=AF_INET, sin_port=htons(80)}, 16) = 0
+1000  0.000008 openat(AT_FDCWD, "/etc/svc.conf", O_RDONLY) = 4
+1000  0.000009 read(4, "config=1", 8) = 8
+1000  0.000010 close(4) = 0
+1000  0.000011 SECCMP_READY() = 0
+1000  0.000012 epoll_wait(5, [{EPOLLIN, {u32=3, u64=3}}], 64, -1) = 1
+1001  0.000013 recvfrom(3, "hello", 5, 0, NULL, NULL) = 5
+1000  0.000014 write(1, "ok", 2) = 2
+1000  0.000015 getrandom(0x7f10, 32, GRND_NONBLOCK) = 32
+1000  0.000016 --- SIGTERM {si_signo=SIGTERM} ---
+1000  0.000017 +++ exited with 0 +++
