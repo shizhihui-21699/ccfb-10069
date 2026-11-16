@@ -1,0 +1,20 @@
+500  0.000100 execve("/srv", ["srv"], 0x1) = 0
+500  0.000200 brk(NULL) = 0x5555
+500  0.000300 openat(AT_FDCWD, "/etc/srv.conf", O_RDONLY|O_CLOEXEC) = 3
+500  0.000400 read(3, "port=8080\n", 10) = 10
+500  0.000500 close(3) = 0
+500  0.000600 socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC, IPPROTO_TCP) = 4
+500  0.000700 setsockopt(4, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
+500  0.000800 bind(4, {sa_family=AF_INET, sin_port=htons(8080), sin_addr=inet_addr("0.0.0.0")}, 16) = 0
+500  0.000900 listen(4, 128) = 0
+500  0.001000 clone(child_stack=NULL, flags=CLONE_VM|CLONE_THREAD) = 501
+501  0.001100 futex(0x7f00, FUTEX_WAIT_PRIVATE, 0, NULL) = 0
+500  0.001200 epoll_create1(EPOLL_CLOEXEC) = 5
+500  0.001300 epoll_ctl(5, EPOLL_CTL_ADD, 4, {events=EPOLLIN, data={u32=4}}) = 0
+500  0.001400 epoll_wait(5, [], 128, -1) = 1
+500  0.001500 accept4(4, {sa_family=AF_INET}, [16], SOCK_CLOEXEC) = 6
+500  0.001600 read(6, "GET /\n", 6) = 6
+500  0.001700 write(6, "200 OK\n", 7) = 7
+500  0.001800 close(6) = 0
+501  0.001900 write(2, "log\n", 4) = 4
+500  0.002000 exit_group(0) = ?

@@ -16,3 +16,9 @@ node_modules/
 __pycache__/
 .venv/
 venv/
+
+# Build output
+build/
+
+# Python bytecode from the table generator
+__pycache__/

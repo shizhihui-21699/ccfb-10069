@@ -1,0 +1,64 @@
+# Hand-written policy for a small HTTP service.
+#
+# This file is the source of truth: `sctrace emit` compiles it to BPF, and
+# `sctrace verify --trace ... --policy ...` replays a trace against it.
+#
+# Syntax summary (see docs/DSL.md for the full grammar):
+#   default <action>                  what happens to an unlisted syscall
+#   startup { ... } / runtime { ... } rules for each phase
+#   allow|deny|kill|kill_process|trap|log|trace(N)|notify(N)|errno(E) <targets>
+#   <syscall>(<arg> <op> <value>, ...)  argument restrictions
+#   @ group names from `sctrace explain`'s built-in list
+#
+# Argument names are per-syscall ("domain", "flags", "optname", ...); use
+# arg0..arg5 when a call has no friendly names.  Constants come from the
+# kernel headers: AF_INET, SOCK_STREAM, O_CLOEXEC, EPERM, SIGCHLD, ....
+
+policy "http-service"
+
+default kill
+
+# ---------------------------------------------------------------------------
+# Start-up.  This filter is installed before main() starts the service; it is
+# the window in which the loader, config parsing and socket setup happen.
+# ---------------------------------------------------------------------------
+startup {
+    allow execve, brk, mmap, munmap, mprotect, madvise
+    allow arch_prctl, set_tid_address, set_robust_list, rseq
+    allow prlimit64, getrandom, futex
+    allow openat where flags has O_CLOEXEC
+    allow read, close, fstat, lseek
+    allow rt_sigaction, rt_sigprocmask, sigaltstack
+
+    # Only TCP over IPv4.  The type nibble is compared, so the service may set
+    # SOCK_CLOEXEC or SOCK_NONBLOCK without breaking the rule.
+    allow socket where domain == AF_INET, type & 0xf == SOCK_STREAM
+    allow setsockopt where level == SOL_SOCKET,
+                          optname in [SO_REUSEADDR, SO_KEEPALIVE, SO_RCVBUF,
+                                      SO_SNDBUF]
+    allow bind, listen
+
+    # A second filter goes in at the ready point; a thread must not be denied a
+    # runtime call in the meantime, so runtime allowances are visible here too.
+    allow epoll_create1, epoll_ctl, epoll_wait, accept4
+}
+
+# ---------------------------------------------------------------------------
+# Runtime.  This is the filter that stays installed for the life of the
+# process, so it is the one that matters.
+# ---------------------------------------------------------------------------
+runtime {
+    allow read, readv, write, writev, close, fstat
+    allow clone, exit_group
+    allow epoll_create1, epoll_ctl, epoll_wait
+    allow accept4 where flags has SOCK_CLOEXEC
+    allow getsockname, getpeername, shutdown
+    allow rt_sigreturn
+    allow futex, nanosleep, clock_gettime
+    allow getpid, gettid
+
+    # The service must never exec again, load a module or trace another
+    # process.  These are explicit so the report shows them.
+    deny execve, execveat -> errno(EPERM)
+    deny ptrace, init_module, finit_module, delete_module -> errno(EPERM)
+}
